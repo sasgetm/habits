@@ -1,7 +1,7 @@
 <template>
   <footer class="footer-bar">
     <div class="footer-points">{{ totalPoints }} баллов</div>
-    <button class="footer-reset-btn" type="button">Сброс</button>
+    <button class="footer-reset-btn" type="button" @click="emit('reset')">Сброс</button>
   </footer>
 </template>
 
@@ -12,6 +12,8 @@ defineProps({
     default: 0,
   },
 })
+
+const emit = defineEmits(['reset'])
 </script>
 
 <style scoped>

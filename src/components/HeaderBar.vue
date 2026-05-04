@@ -1,12 +1,20 @@
 <template>
   <header class="header-bar">
     <div class="header-date">{{ currentDate }}</div>
-    <button class="header-add-btn" type="button">Добавить привычку</button>
+    <router-link to="/habit/new" class="header-add-btn">Добавить привычку</router-link>
   </header>
 </template>
 
 <script setup>
-const currentDate = '3 мая 2026'
+import { computed } from 'vue'
+
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+})
 </script>
 
 <style scoped>
@@ -31,6 +39,7 @@ const currentDate = '3 мая 2026'
   color: #fff;
   background-color: #4caf50;
   border-radius: 8px;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 
