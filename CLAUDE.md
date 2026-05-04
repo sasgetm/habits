@@ -26,6 +26,8 @@ habits/
     ├── App.vue                 # Корневой компонент: <router-view />
     ├── assets/
     │   └── main.css            # Глобальный reset (*), стили body, button
+    ├── composables/
+    │   └── useHabits.js        # Общее реактивное состояние: habits (ref), completed (reactive), CRUD-методы
     ├── routes/
     │   └── routes.js           # Конфигурация маршрутов: createRouter(createWebHistory())
     ├── pages/
@@ -79,16 +81,31 @@ App.vue
         ├── HeaderBar.vue (та же шапка с датой и кнопкой «Добавить привычку»)
         └── HabitForm.vue
             Props: habitId (Number|null)
+            Emits: saved({ id, name, levels }), deleted(id)
             — isEdit = habitId != null
             — Заголовок: «Новая привычка» / «Редактирование привычки»
+            — При редактировании загружает данные через useHabits().getHabitById(id)
+            — Валидация: название (1-128 символов), баллы (≥1, ≤128)
             ├── FormField.vue (название)
             │   Props: label, type, required, minlength, maxlength, placeholder, error
             │   v-model: modelValue
             ├── FormField.vue (баллы за выполнение, v-for levels)
             ├── FormButton.vue («Добавить вариант выполнения», variant=secondary)
-            ├── FormButton.vue («Сохранить», variant=primary)
+            ├── FormButton.vue («Сохранить», variant=primary, type=submit)
             └── FormButton.vue («Удалить», variant=danger, v-if=isEdit)
 ```
+
+### useHabits composable (src/composables/useHabits.js)
+
+Модульный singleton — общее реактивное состояние привычек, доступное всем компонентам:
+- `habits` — ref-массив объектов привычек
+- `completed` — reactive-объект { [habitId]: levelIndex | undefined }
+- `addHabit(name, levels)` — добавляет привычку, возвращает id
+- `updateHabit(id, name, levels)` — обновляет существующую привычку
+- `deleteHabit(id)` — удаляет привычку и её состояние completed
+- `getHabitById(id)` — возвращает привычку по id или null
+- `resetCompleted()` — очищает все отметки выполнения
+- `seedInitialHabits(initialHabits)` — заполняет начальными данными (только если habits пуст)
 
 ## Модель данных
 
@@ -121,9 +138,10 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 - **Radio inputs** для выбора уровня привычки (повторный клик сбрасывает выбор)
 - **vue-router** с createWebHistory для навигации между страницами
 - **router-link** для навигационных кнопок (вместо голых button)
-- Данные привычек пока **захардкожены** в main.vue (3 привычки: зарядка, чтение, вода)
-- Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset очищает completed
-- Форма добавления/редактирования привычки — **только вёрстка**, функционал пока не реализован
+- **useHabits composable** — модульный singleton для общего реактивного состояния (без Pinia)
+- Начальные привычки заполняются через `seedInitialHabits()` в main.vue (3 привычки: зарядка, чтение, вода)
+- Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset → resetCompleted()
+- CRUD привычек — **реализован**: добавление, редактирование, удаление через useHabits
 
 ### Компоненты формы
 
@@ -140,11 +158,13 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 
 - **HabitForm.vue** — контейнер формы привычки:
   - Props: `habitId` (Number|null) — если передан, форма в режиме редактирования
+  - Emits: `saved({ id, name, levels })`, `deleted(id)`
   - Поле «Название» (FormField: text, required, 1-128 символов)
   - Секция «Баллы за выполнение» (FormField: number, required, 1-128, v-for)
   - Кнопка «Добавить вариант выполнения» (FormButton, variant=secondary) — добавляет поле балла
-  - Кнопка «Сохранить» (FormButton, variant=primary)
-  - Кнопка «Удалить» (FormButton, variant=danger, v-if=isEdit)
+  - Кнопка «Сохранить» (FormButton, variant=primary, type=submit) — валидация + emit saved
+  - Кнопка «Удалить» (FormButton, variant=danger, v-if=isEdit) — emit deleted
+  - При редактировании загружает данные привычки через `useHabits().getHabitById(id)`
 
 ## Скрипты (package.json)
 
@@ -156,12 +176,17 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 
 ## Текущее состояние
 
-Проект на ранней стадии: базовая структура готова, UI отображается, выбор уровней работает, баллы считаются.
+Базовая структура и CRUD реализованы. UI отображается, выбор уровней работает, баллы считаются.
 - ✅ Динамическая дата в HeaderBar (toLocaleDateString ru-RU)
-- ✅ Кнопка «Сброс» в FooterBar (emit reset → очистка completed)
+- ✅ Кнопка «Сброс» в FooterBar (emit reset → resetCompleted())
 - ✅ Модель данных: levels = number[] (без label, отображаются баллы)
 - ✅ Роутинг: vue-router с тремя маршрутами (главная, новая привычка, редактирование)
 - ✅ Страницы: main.vue (главная), habit-form.vue (форма)
-- ✅ Компоненты формы: HabitForm, FormField, FormButton (вёрстка, без функционала)
+- ✅ Компоненты формы: HabitForm, FormField, FormButton
 - ✅ Навигация: router-link в HeaderBar («Добавить привычку») и HabitItem («Редактировать»)
-- Не реализовано: сохранение формы, добавление/редактирование/удаление привычек, синхронизация с Google Sheets, сохранение в localStorage.
+- ✅ Composable useHabits.js — общее реактивное состояние, модульный singleton
+- ✅ Добавление привычки: форма без кнопки «Удалить», сохранение → addHabit → переход на главную
+- ✅ Редактирование привычки: поля заполнены данными, кнопка «Удалить» видна, сохранение → updateHabit → переход на главную
+- ✅ Удаление привычки: кнопка «Удалить» → deleteHabit → переход на главную
+- ✅ Валидация формы: название (1-128 символов, обязательно), баллы (≥1, ≤128, минимум один)
+- Не реализовано: синхронизация с Google Sheets, сохранение в localStorage.

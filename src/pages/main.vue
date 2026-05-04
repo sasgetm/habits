@@ -13,35 +13,27 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import HeaderBar from '../components/HeaderBar.vue'
 import FooterBar from '../components/FooterBar.vue'
 import HabitList from '../components/HabitList.vue'
+import { useHabits } from '../composables/useHabits.js'
 
-const habits = [
-  {
-    id: 1,
-    name: 'Утренняя зарядка',
-    levels: [0, 5, 10, 15],
-  },
-  {
-    id: 2,
-    name: 'Чтение книги',
-    levels: [0, 5, 10, 15],
-  },
-  {
-    id: 3,
-    name: 'Питьё воды',
-    levels: [0, 5, 10, 15],
-  },
-]
+const { habits, completed, resetCompleted, seedInitialHabits } = useHabits()
 
-const completed = ref({})
+// Начальные привычки (заполняются один раз при первом запуске)
+onMounted(() => {
+  seedInitialHabits([
+    { id: 1, name: 'Утренняя зарядка', levels: [0, 5, 10, 15] },
+    { id: 2, name: 'Чтение книги', levels: [0, 5, 10, 15] },
+    { id: 3, name: 'Питьё воды', levels: [0, 5, 10, 15] },
+  ])
+})
 
 const totalPoints = computed(() => {
   let sum = 0
-  for (const habit of habits) {
-    const levelId = completed.value[habit.id]
+  for (const habit of habits.value) {
+    const levelId = completed[habit.id]
     if (levelId != null && habit.levels[levelId] != null) {
       sum += habit.levels[levelId]
     }
@@ -50,11 +42,11 @@ const totalPoints = computed(() => {
 })
 
 function handleSelectLevel(habitId, levelId) {
-  completed.value[habitId] = levelId
+  completed[habitId] = levelId
 }
 
 function handleReset() {
-  completed.value = {}
+  resetCompleted()
 }
 </script>
 

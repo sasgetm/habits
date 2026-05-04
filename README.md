@@ -18,8 +18,8 @@
 
 ## Установка и запуск
 
-```
-bash npm install
+```bash
+npm install
 npm run dev
 ```
 
@@ -27,8 +27,12 @@ npm run dev
 
 ## Сборка проекта
 
-```bash npm run build```
+```bash
+npm run build
+```
 
 ## Предпросмотр сборки
 
-```bash npm run preview```
+```bash
+npm run preview
+```
