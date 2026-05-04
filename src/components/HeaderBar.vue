@@ -6,7 +6,15 @@
 </template>
 
 <script setup>
-const currentDate = '3 мая 2026'
+import { computed } from 'vue'
+
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+})
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@
     <div class="habit-levels">
       <label
         v-for="(level, index) in habit.levels"
-        :key="level.label"
+        :key="index"
         class="level-label"
       >
         <input
@@ -18,7 +18,7 @@
           class="level-input"
           @click="handleClick(index)"
         />
-        <span class="level-text">{{ level.label }}</span>
+        <span class="level-text">{{ level }}</span>
       </label>
     </div>
   </li>

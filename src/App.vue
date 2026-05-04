@@ -8,7 +8,7 @@
         @select-level="handleSelectLevel"
       />
     </main>
-    <FooterBar :total-points="totalPoints" />
+    <FooterBar :total-points="totalPoints" @reset="handleReset" />
   </div>
 </template>
 
@@ -22,32 +22,17 @@ const habits = [
   {
     id: 1,
     name: 'Утренняя зарядка',
-    levels: [
-      { label: 'Не сделал', points: 0 },
-      { label: '5 минут', points: 5 },
-      { label: '10 минут', points: 10 },
-      { label: '15 минут', points: 15 },
-    ],
+    levels: [0, 5, 10, 15],
   },
   {
     id: 2,
     name: 'Чтение книги',
-    levels: [
-      { label: 'Не читал', points: 0 },
-      { label: '10 страниц', points: 5 },
-      { label: '20 страниц', points: 10 },
-      { label: '30+ страниц', points: 15 },
-    ],
+    levels: [0, 5, 10, 15],
   },
   {
     id: 3,
     name: 'Питьё воды',
-    levels: [
-      { label: 'Мало', points: 0 },
-      { label: '1 литр', points: 5 },
-      { label: '1.5 литра', points: 10 },
-      { label: '2+ литра', points: 15 },
-    ],
+    levels: [0, 5, 10, 15],
   },
 ]
 
@@ -57,8 +42,8 @@ const totalPoints = computed(() => {
   let sum = 0
   for (const habit of habits) {
     const levelId = completed.value[habit.id]
-    if (levelId != null && habit.levels[levelId]) {
-      sum += habit.levels[levelId].points
+    if (levelId != null && habit.levels[levelId] != null) {
+      sum += habit.levels[levelId]
     }
   }
   return sum
@@ -66,6 +51,10 @@ const totalPoints = computed(() => {
 
 function handleSelectLevel(habitId, levelId) {
   completed.value[habitId] = levelId
+}
+
+function handleReset() {
+  completed.value = {}
 }
 </script>
 

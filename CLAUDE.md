@@ -37,7 +37,7 @@ habits/
 ```
 App.vue
 ├── HeaderBar.vue
-│   — Статическая дата (пока хардкод "3 мая 2026")
+│   — Динамическая дата computed (toLocaleDateString ru-RU)
 │   — Кнопка "Добавить привычку" (без обработчика)
 │
 ├── HabitList.vue
@@ -48,10 +48,12 @@ App.vue
 │       Emits: selectLevel(habitId, levelId)
 │       — При клике на уже выбранный уровень — сбрасывает (emit null)
 │       — При клике на другой уровень — выбирает его
+│       — Уровни отображаются числами-баллами (level вместо level.label)
 │
 └── FooterBar.vue
     Props: totalPoints (Number)
-    — Кнопка "Сброс" (без обработчика)
+    Emits: reset
+    — Кнопка "Сброс" сбрасывает все отметки через emit reset → App.handleReset
 ```
 
 ## Модель данных
@@ -61,7 +63,7 @@ App.vue
 {
   id: number,
   name: string,
-  levels: Array<{ label: string, points: number }>
+  levels: number[]  // массив баллов, индекс = идентификатор уровня
 }
 ```
 
@@ -74,7 +76,7 @@ App.vue
 ### totalPoints (вычисляемое)
 ```ts
 // Сумма points выбранных уровней по всем привычкам
-computed: sum(habits[i].levels[completed[habits[i].id]]?.points ?? 0)
+computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 ```
 
 ## Ключевые паттерны
@@ -84,7 +86,8 @@ computed: sum(habits[i].levels[completed[habits[i].id]]?.points ?? 0)
 - **Scoped styles** во всех компонентах (кроме main.css — глобальный)
 - **Radio inputs** для выбора уровня привычки (повторный клик сбрасывает выбор)
 - Данные привычек пока **захардкожены** в App.vue (3 привычки: зарядка, чтение, вода)
-- Кнопки "Добавить привычку", "Редактировать", "Сброс" — **без обработчиков** (заглушки)
+- Кнопки "Добавить привычку", "Редактировать" — **без обработчиков** (заглушки)
+- Кнопка "Сброс" в FooterBar — **реализована**: emit reset → App.vue handleReset очищает completed
 
 ## Скрипты (package.json)
 
@@ -96,4 +99,8 @@ computed: sum(habits[i].levels[completed[habits[i].id]]?.points ?? 0)
 
 ## Текущее состояние
 
-Проект на ранней стадии: базовая структура готова, UI отображается, выбор уровней работает, баллы считаются. Не реализовано: добавление/редактирование/удаление привычек, сброс, синхронизация с Google Sheets, сохранение в localStorage, динамическая дата.
+Проект на ранней стадии: базовая структура готова, UI отображается, выбор уровней работает, баллы считаются.
+- ✅ Динамическая дата в HeaderBar (toLocaleDateString ru-RU)
+- ✅ Кнопка «Сброс» в FooterBar (emit reset → очистка completed)
+- ✅ Модель данных: levels = number[] (без label, отображаются баллы)
+- Не реализовано: добавление/редактирование/удаление привычек, синхронизация с Google Sheets, сохранение в localStorage.
