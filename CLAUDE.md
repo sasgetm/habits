@@ -9,51 +9,85 @@
 - **Vue 3.4** (Composition API, `<script setup>`)
 - **Vite 5.4** (сборщик)
 - **@vitejs/plugin-vue 5** (плагин Vue для Vite)
-- Без роутера, без Pinia — состояние в корневом компоненте
+- **vue-router 4** (роутинг)
+- Без Pinia — состояние в компонентах страниц
 
 ## Структура проекта
 
 ```
 habits/
 ├── index.html                  # Точка входа: <div id="app"> + <script src="/src/main.js">
-├── package.json                # Зависимости: vue 3.4, vite 5.4, @vitejs/plugin-vue 5
+├── package.json                # Зависимости: vue 3.4, vue-router 4, vite 5.4, @vitejs/plugin-vue 5
 ├── vite.config.js              # Конфиг Vite: defineConfig({ plugins: [vue()] })
 ├── .gitignore                  # /node_modules
 ├── README.md                   # Описание проекта, установка, запуск
 └── src/
-    ├── main.js                 # createApp(App).mount('#app'), импорт main.css
-    ├── App.vue                 # Корневой компонент: состояние habits[], completed{}, totalPoints, handleSelectLevel
+    ├── main.js                 # createApp(App).use(router).mount('#app'), импорт main.css
+    ├── App.vue                 # Корневой компонент: <router-view />
     ├── assets/
     │   └── main.css            # Глобальный reset (*), стили body, button
+    ├── routes/
+    │   └── routes.js           # Конфигурация маршрутов: createRouter(createWebHistory())
+    ├── pages/
+    │   ├── main.vue            # Главная страница: список привычек, состояние habits/completed/totalPoints
+    │   └── habit-form.vue      # Страница формы: добавление/редактирование привычки
     └── components/
-        ├── HeaderBar.vue       # Шапка: дата (currentDate) + кнопка "Добавить привычку"
+        ├── HeaderBar.vue       # Шапка: дата (currentDate) + router-link «Добавить привычку» → /habit/new
         ├── HabitList.vue       # Список привычек: v-for HabitItem, проброс props/events
-        ├── HabitItem.vue       # Карточка привычки: radio-кнопки уровней, emit selectLevel
-        └── FooterBar.vue       # Подвал: totalPoints + кнопка "Сброс"
+        ├── HabitItem.vue       # Карточка привычки: radio-кнопки уровней, router-link «Редактировать» → /habit/:id/edit
+        ├── FooterBar.vue       # Подвал: totalPoints + кнопка «Сброс»
+        ├── HabitForm.vue       # Форма привычки: поля название/баллы, кнопки сохранить/удалить/добавить вариант
+        ├── FormField.vue       # Поле формы: label, input, отображение ошибки, v-model
+        └── FormButton.vue      # Кнопка формы: варианты primary/secondary/danger, поддержка hidden
 ```
+
+## Роутинг
+
+| Путь | Имя | Страница | Описание |
+|------|-----|----------|----------|
+| `/` | main | main.vue | Главная — список привычек |
+| `/habit/new` | habit-new | habit-form.vue | Добавление новой привычки |
+| `/habit/:id/edit` | habit-edit | habit-form.vue | Редактирование привычки (props: id) |
 
 ## Дерево компонентов и поток данных
 
 ```
 App.vue
-├── HeaderBar.vue
-│   — Динамическая дата computed (toLocaleDateString ru-RU)
-│   — Кнопка "Добавить привычку" (без обработчика)
-│
-├── HabitList.vue
-│   Props: habits (Array), completed (Object)
-│   Emits: selectLevel(habitId, levelId)
-│   └── HabitItem.vue (v-for)
-│       Props: habit (Object), selectedLevelId (Number|null)
-│       Emits: selectLevel(habitId, levelId)
-│       — При клике на уже выбранный уровень — сбрасывает (emit null)
-│       — При клике на другой уровень — выбирает его
-│       — Уровни отображаются числами-баллами (level вместо level.label)
-│
-└── FooterBar.vue
-    Props: totalPoints (Number)
-    Emits: reset
-    — Кнопка "Сброс" сбрасывает все отметки через emit reset → App.handleReset
+└── <router-view>
+    ├── main.vue (путь: /)
+    │   ├── HeaderBar.vue
+    │   │   — Динамическая дата computed (toLocaleDateString ru-RU)
+    │   │   — router-link «Добавить привычку» → /habit/new
+    │   │
+    │   ├── HabitList.vue
+    │   │   Props: habits (Array), completed (Object)
+    │   │   Emits: selectLevel(habitId, levelId)
+    │   │   └── HabitItem.vue (v-for)
+    │   │       Props: habit (Object), selectedLevelId (Number|null)
+    │   │       Emits: selectLevel(habitId, levelId)
+    │   │       — При клике на уже выбранный уровень — сбрасывает (emit null)
+    │   │       — При клике на другой уровень — выбирает его
+    │   │       — Уровни отображаются числами-баллами (level вместо level.label)
+    │   │       — router-link «Редактировать» → /habit/:id/edit
+    │   │
+    │   └── FooterBar.vue
+    │       Props: totalPoints (Number)
+    │       Emits: reset
+    │       — Кнопка «Сброс» сбрасывает все отметки через emit reset → main.handleReset
+    │
+    └── habit-form.vue (пути: /habit/new, /habit/:id/edit)
+        ├── HeaderBar.vue (та же шапка с датой и кнопкой «Добавить привычку»)
+        └── HabitForm.vue
+            Props: habitId (Number|null)
+            — isEdit = habitId != null
+            — Заголовок: «Новая привычка» / «Редактирование привычки»
+            ├── FormField.vue (название)
+            │   Props: label, type, required, minlength, maxlength, placeholder, error
+            │   v-model: modelValue
+            ├── FormField.vue (баллы за выполнение, v-for levels)
+            ├── FormButton.vue («Добавить вариант выполнения», variant=secondary)
+            ├── FormButton.vue («Сохранить», variant=primary)
+            └── FormButton.vue («Удалить», variant=danger, v-if=isEdit)
 ```
 
 ## Модель данных
@@ -85,9 +119,32 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 - **Props + Emits** для передачи данных вниз и событий вверх (без provide/inject)
 - **Scoped styles** во всех компонентах (кроме main.css — глобальный)
 - **Radio inputs** для выбора уровня привычки (повторный клик сбрасывает выбор)
-- Данные привычек пока **захардкожены** в App.vue (3 привычки: зарядка, чтение, вода)
-- Кнопки "Добавить привычку", "Редактировать" — **без обработчиков** (заглушки)
-- Кнопка "Сброс" в FooterBar — **реализована**: emit reset → App.vue handleReset очищает completed
+- **vue-router** с createWebHistory для навигации между страницами
+- **router-link** для навигационных кнопок (вместо голых button)
+- Данные привычек пока **захардкожены** в main.vue (3 привычки: зарядка, чтение, вода)
+- Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset очищает completed
+- Форма добавления/редактирования привычки — **только вёрстка**, функционал пока не реализован
+
+### Компоненты формы
+
+- **FormField.vue** — переиспользуемое поле ввода:
+  - Props: `label`, `modelValue` (v-model), `type`, `placeholder`, `required`, `minlength`, `maxlength`, `min`, `max`, `error`
+  - Emits: `update:modelValue`
+  - Отображает label, input и span с ошибкой при наличии
+
+- **FormButton.vue** — переиспользуемая кнопка:
+  - Props: `label`, `variant` (primary/secondary/danger), `type` (button по умолчанию), `hidden`
+  - Emits: `click`
+  - Скрывается через `v-if="!hidden"`
+  - Три цветовых варианта: зелёный (primary), серый (secondary), красный (danger)
+
+- **HabitForm.vue** — контейнер формы привычки:
+  - Props: `habitId` (Number|null) — если передан, форма в режиме редактирования
+  - Поле «Название» (FormField: text, required, 1-128 символов)
+  - Секция «Баллы за выполнение» (FormField: number, required, 1-128, v-for)
+  - Кнопка «Добавить вариант выполнения» (FormButton, variant=secondary) — добавляет поле балла
+  - Кнопка «Сохранить» (FormButton, variant=primary)
+  - Кнопка «Удалить» (FormButton, variant=danger, v-if=isEdit)
 
 ## Скрипты (package.json)
 
@@ -103,4 +160,8 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 - ✅ Динамическая дата в HeaderBar (toLocaleDateString ru-RU)
 - ✅ Кнопка «Сброс» в FooterBar (emit reset → очистка completed)
 - ✅ Модель данных: levels = number[] (без label, отображаются баллы)
-- Не реализовано: добавление/редактирование/удаление привычек, синхронизация с Google Sheets, сохранение в localStorage.
+- ✅ Роутинг: vue-router с тремя маршрутами (главная, новая привычка, редактирование)
+- ✅ Страницы: main.vue (главная), habit-form.vue (форма)
+- ✅ Компоненты формы: HabitForm, FormField, FormButton (вёрстка, без функционала)
+- ✅ Навигация: router-link в HeaderBar («Добавить привычку») и HabitItem («Редактировать»)
+- Не реализовано: сохранение формы, добавление/редактирование/удаление привычек, синхронизация с Google Sheets, сохранение в localStorage.

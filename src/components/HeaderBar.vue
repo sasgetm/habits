@@ -1,7 +1,7 @@
 <template>
   <header class="header-bar">
     <div class="header-date">{{ currentDate }}</div>
-    <button class="header-add-btn" type="button">Добавить привычку</button>
+    <router-link to="/habit/new" class="header-add-btn">Добавить привычку</router-link>
   </header>
 </template>
 
@@ -39,6 +39,7 @@ const currentDate = computed(() => {
   color: #fff;
   background-color: #4caf50;
   border-radius: 8px;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 

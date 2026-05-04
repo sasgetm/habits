@@ -2,7 +2,7 @@
   <li class="habit-item">
     <div class="habit-header">
       <span class="habit-name">{{ habit.name }}</span>
-      <button class="habit-edit-btn" type="button">Редактировать</button>
+      <router-link :to="'/habit/' + habit.id + '/edit'" class="habit-edit-btn">Редактировать</router-link>
     </div>
     <div class="habit-levels">
       <label
@@ -74,6 +74,7 @@ function handleClick(levelId) {
   color: #666;
   background-color: #f0f0f0;
   border-radius: 6px;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 
