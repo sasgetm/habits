@@ -23,7 +23,6 @@ const emit = defineEmits(['reset'])
   justify-content: space-between;
   padding: 16px;
   background-color: #fff;
-  border-top: 1px solid #e0e0e0;
 }
 
 .footer-points {
@@ -35,13 +34,13 @@ const emit = defineEmits(['reset'])
 .footer-reset-btn {
   padding: 8px 16px;
   font-size: 14px;
-  color: #fff;
-  background-color: #ef5350;
-  border-radius: 8px;
+  color: var(--text-gray);
+  background-color: var(--bg-gray);
+  border-radius: 3px;
   transition: background-color 0.2s ease;
 }
 
 .footer-reset-btn:hover {
-  background-color: #e53935;
+  background-color: var(--bg-gray-hover);
 }
 </style>
