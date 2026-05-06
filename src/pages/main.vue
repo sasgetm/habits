@@ -13,25 +13,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import HeaderBar from '../components/HeaderBar.vue'
 import FooterBar from '../components/FooterBar.vue'
 import HabitList from '../components/HabitList.vue'
 import { useHabits } from '../composables/useHabits.js'
 
-const { habits, completed, resetCompleted, seedInitialHabits } = useHabits()
-
-// Начальные привычки (заполняются один раз при первом запуске)
-onMounted(() => {
-  seedInitialHabits([
-    { id: 1, name: 'Прогулка пешком/бег/велосипед', levels: [2, 3] },
-    { id: 2, name: 'Спорт', levels: [3] },
-    { id: 3, name: 'Урок по английскому', levels: [1, 2, 3] },
-    { id: 3, name: 'Урок по немецкому', levels: [1, 2, 3] },
-    { id: 3, name: 'Уборка', levels: [1] },
-    { id: 3, name: 'Учеба', levels: [3] },
-  ])
-})
+const { habits, completed, resetCompleted, setLevel } = useHabits()
 
 const totalPoints = computed(() => {
   let sum = 0
@@ -45,7 +33,7 @@ const totalPoints = computed(() => {
 })
 
 function handleSelectLevel(habitId, levelId) {
-  completed[habitId] = levelId
+  setLevel(habitId, levelId)
 }
 
 function handleReset() {

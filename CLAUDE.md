@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Минималистичный трекер привычек (SPA) на Vue 3 + Vite. Позволяет отслеживать выполнение ежедневных привычек с несколькими уровнями выполнения. Данные хранятся в localStorage, синхронизация с Google Sheets.
+Минималистичный трекер привычек (SPA) на Vue 3 + Vite. Позволяет отслеживать выполнение ежедневных привычек с несколькими уровнями выполнения. Данные хранятся в localStorage (автосохранение после каждого изменения). Синхронизация с Google Sheets — в планах.
 
 ## Технологический стек
 
@@ -100,12 +100,20 @@ App.vue
 Модульный singleton — общее реактивное состояние привычек, доступное всем компонентам:
 - `habits` — ref-массив объектов привычек
 - `completed` — reactive-объект { [habitId]: levelIndex | undefined }
-- `addHabit(name, levels)` — добавляет привычку, возвращает id
-- `updateHabit(id, name, levels)` — обновляет существующую привычку
-- `deleteHabit(id)` — удаляет привычку и её состояние completed
+- `addHabit(name, levels)` — добавляет привычку, возвращает id, сохраняет в localStorage
+- `updateHabit(id, name, levels)` — обновляет существующую привычку, сохраняет в localStorage
+- `deleteHabit(id)` — удаляет привычку и её состояние completed, сохраняет в localStorage
 - `getHabitById(id)` — возвращает привычку по id или null
-- `resetCompleted()` — очищает все отметки выполнения
-- `seedInitialHabits(initialHabits)` — заполняет начальными данными (только если habits пуст)
+- `resetCompleted()` — очищает все отметки выполнения, сохраняет в localStorage
+- `setLevel(habitId, levelId)` — устанавливает уровень выполнения привычки, сохраняет в localStorage
+
+**Внутренние функции (не экспортируются):**
+- `saveToLocalStorage()` — сериализует habits, completed, nextId в localStorage
+- `loadFromLocalStorage()` — восстанавливает состояние из localStorage
+
+**Автоинициализация при загрузке модуля:**
+- Если в localStorage есть данные — загружает их
+- Если localStorage пуст — заполняет `DEFAULT_HABITS` (6 привычек) и сохраняет в localStorage
 
 ## Модель данных
 
@@ -139,7 +147,7 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 - **vue-router** с createWebHistory для навигации между страницами
 - **router-link** для навигационных кнопок (вместо голых button)
 - **useHabits composable** — модульный singleton для общего реактивного состояния (без Pinia)
-- Начальные привычки заполняются через `seedInitialHabits()` в main.vue (3 привычки: зарядка, чтение, вода)
+- **localStorage** — полное сохранение состояния: habits, completed, nextId. Автосохранение после каждого изменения (addHabit, updateHabit, deleteHabit, setLevel, resetCompleted). При первом запуске (пустой localStorage) заполняется 6 дефолтными привычками.
 - Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset → resetCompleted()
 - CRUD привычек — **реализован**: добавление, редактирование, удаление через useHabits
 
@@ -176,7 +184,7 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 
 ## Текущее состояние
 
-Базовая структура и CRUD реализованы. UI отображается, выбор уровней работает, баллы считаются.
+Базовая структура, CRUD и localStorage реализованы. UI отображается, выбор уровней работает, баллы считаются, данные сохраняются между сессиями.
 - ✅ Динамическая дата в HeaderBar (toLocaleDateString ru-RU)
 - ✅ Кнопка «Сброс» в FooterBar (emit reset → resetCompleted())
 - ✅ Модель данных: levels = number[] (без label, отображаются баллы)
@@ -189,4 +197,5 @@ computed: sum(habits[i].levels[completed[habits[i].id]] ?? 0)
 - ✅ Редактирование привычки: поля заполнены данными, кнопка «Удалить» видна, сохранение → updateHabit → переход на главную
 - ✅ Удаление привычки: кнопка «Удалить» → deleteHabit → переход на главную
 - ✅ Валидация формы: название (1-128 символов, обязательно), баллы (≥1, ≤128, минимум один)
-- Не реализовано: синхронизация с Google Sheets, сохранение в localStorage.
+- ✅ Сохранение в localStorage: habits, completed, nextId. Автосохранение после каждого изменения. При первом запуске — 6 дефолтных привычек.
+- Не реализовано: синхронизация с Google Sheets.
