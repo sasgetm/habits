@@ -14,6 +14,15 @@
         :error="errors.name"
       />
 
+      <FormField
+        v-model="order"
+        label="Порядковый номер"
+        type="number"
+        required
+        :min="1"
+        :error="errors.order"
+      />
+
       <div class="levels-section">
         <label class="levels-label">Баллы за выполнение</label>
         <div
@@ -63,7 +72,7 @@ import { useHabits } from '../composables/useHabits.js'
 
 const props = defineProps({
   habitId: {
-    type: Number,
+    type: [Number, String],
     default: null,
   },
 })
@@ -72,12 +81,14 @@ const emit = defineEmits(['saved', 'deleted'])
 
 const isEdit = props.habitId != null
 
-const { getHabitById, deleteHabit } = useHabits()
+const { getHabitById, getNextOrder } = useHabits()
 
 const name = ref('')
+const order = ref(isEdit ? 0 : getNextOrder())
 const levels = ref([0])
 const errors = reactive({
   name: null,
+  order: null,
   levels: {},
 })
 
@@ -86,6 +97,7 @@ if (isEdit) {
   const habit = getHabitById(props.habitId)
   if (habit) {
     name.value = habit.name
+    order.value = habit.order
     levels.value = [...habit.levels]
   }
 }
@@ -100,6 +112,7 @@ watch(
       const habit = getHabitById(newId)
       if (habit) {
         name.value = habit.name
+        order.value = habit.order
         levels.value = [...habit.levels]
       }
     }
@@ -114,6 +127,7 @@ function addLevel() {
 function validate() {
   let valid = true
   errors.name = null
+  errors.order = null
   errors.levels = {}
 
   const trimmedName = name.value.trim()
@@ -122,6 +136,12 @@ function validate() {
     valid = false
   } else if (trimmedName.length > 128) {
     errors.name = 'Название не должно превышать 128 символов'
+    valid = false
+  }
+
+  const orderVal = Number(order.value)
+  if (!Number.isInteger(orderVal) || orderVal < 1) {
+    errors.order = 'Порядковый номер должен быть целым числом не менее 1'
     valid = false
   }
 
@@ -153,6 +173,7 @@ function handleSave() {
     id: props.habitId,
     name: name.value.trim(),
     levels: numericLevels,
+    order: Number(order.value),
   })
 }
 

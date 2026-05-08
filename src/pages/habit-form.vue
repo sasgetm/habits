@@ -24,14 +24,15 @@ const router = useRouter()
 const { addHabit, updateHabit, deleteHabit } = useHabits()
 
 const habitId = computed(() => {
-  return route.params.id ? Number(route.params.id) : null
+  const id = route.params.id
+  return id != null ? String(id) : null
 })
 
-function handleSaved({ id, name, levels }) {
+function handleSaved({ id, name, levels, order }) {
   if (id != null) {
-    updateHabit(id, name, levels)
+    updateHabit(id, name, levels, order)
   } else {
-    addHabit(name, levels)
+    addHabit(name, levels, order)
   }
   router.push('/')
 }

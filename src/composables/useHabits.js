@@ -2,28 +2,43 @@ import { ref, reactive } from 'vue'
 
 const STORAGE_KEY_HABITS = 'habits-tracker-data'
 const STORAGE_KEY_COMPLETED = 'habits-tracker-completed'
-const STORAGE_KEY_NEXT_ID = 'habits-tracker-nextId'
+const STORAGE_KEY_NEXT_ORDER = 'habits-tracker-nextOrder'
 
 // Общее реактивное состояние привычек (модульный singleton)
 const habits = ref([])
 const completed = reactive({})
 
-let nextId = 1
+let nextOrder = 1
 
 function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(habits.value))
   localStorage.setItem(STORAGE_KEY_COMPLETED, JSON.stringify(completed))
-  localStorage.setItem(STORAGE_KEY_NEXT_ID, String(nextId))
+  localStorage.setItem(STORAGE_KEY_NEXT_ORDER, String(nextOrder))
+}
+
+function migrateHabits(list) {
+  for (const h of list) {
+    // Если id — число (старый формат), преобразуем в строку
+    if (typeof h.id === 'number') {
+      h.id = String(h.id)
+    }
+    // Если нет поля order, присваиваем order = старый числовой id (или индекс)
+    if (h.order == null) {
+      h.order = typeof h.id === 'number' ? h.id : 1
+    }
+  }
 }
 
 function loadFromLocalStorage() {
   const savedHabits = localStorage.getItem(STORAGE_KEY_HABITS)
   const savedCompleted = localStorage.getItem(STORAGE_KEY_COMPLETED)
-  const savedNextId = localStorage.getItem(STORAGE_KEY_NEXT_ID)
+  const savedNextOrder = localStorage.getItem(STORAGE_KEY_NEXT_ORDER)
 
   if (savedHabits) {
     try {
-      habits.value = JSON.parse(savedHabits)
+      const parsed = JSON.parse(savedHabits)
+      migrateHabits(parsed)
+      habits.value = parsed
     } catch {
       habits.value = []
     }
@@ -38,8 +53,15 @@ function loadFromLocalStorage() {
       // ignore
     }
   }
-  if (savedNextId) {
-    nextId = Number(savedNextId)
+  if (savedNextOrder) {
+    nextOrder = Number(savedNextOrder)
+  }
+
+  // Если есть старый ключ nextId, мигрируем его в nextOrder
+  const savedNextId = localStorage.getItem('habits-tracker-nextId')
+  if (savedNextId && !savedNextOrder) {
+    nextOrder = Number(savedNextId)
+    localStorage.removeItem('habits-tracker-nextId')
   }
 }
 
@@ -50,22 +72,30 @@ if (localStorage.getItem(STORAGE_KEY_HABITS)) {
 }
 
 export function useHabits() {
-  function addHabit(name, levels) {
-    const id = nextId++
+  function addHabit(name, levels, order) {
+    const id = crypto.randomUUID()
+    const habitOrder = order != null ? order : nextOrder
+    if (habitOrder >= nextOrder) {
+      nextOrder = habitOrder + 1
+    }
     habits.value.push({
       id,
       name,
       levels: [...levels],
+      order: habitOrder,
     })
     saveToLocalStorage()
     return id
   }
 
-  function updateHabit(id, name, levels) {
+  function updateHabit(id, name, levels, order) {
     const habit = habits.value.find((h) => h.id === id)
     if (habit) {
       habit.name = name
       habit.levels = [...levels]
+      if (order != null) {
+        habit.order = order
+      }
     }
     saveToLocalStorage()
   }
@@ -81,6 +111,18 @@ export function useHabits() {
 
   function getHabitById(id) {
     return habits.value.find((h) => h.id === id) || null
+  }
+
+  function getNextOrder() {
+    return nextOrder
+  }
+
+  function updateOrder(id, newOrder) {
+    const habit = habits.value.find((h) => h.id === id)
+    if (habit) {
+      habit.order = newOrder
+    }
+    saveToLocalStorage()
   }
 
   function resetCompleted() {
@@ -102,6 +144,8 @@ export function useHabits() {
     updateHabit,
     deleteHabit,
     getHabitById,
+    getNextOrder,
+    updateOrder,
     resetCompleted,
     setLevel,
   }

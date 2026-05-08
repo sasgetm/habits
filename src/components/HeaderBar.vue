@@ -1,15 +1,25 @@
 <template>
   <header class="header-bar">
-    <div class="header-date">{{ currentDate }}</div>
+    <div class="header-left">
+      <div class="header-date">{{ currentDate }}</div>
+      <router-link to="/settings" class="header-settings-btn">✎</router-link>
+    </div>
     <router-link to="/habit/new" class="header-add-btn">+</router-link>
   </header>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { useSettings } from '../composables/useSettings.js'
+
+const { dayStartHour } = useSettings()
 
 const currentDate = computed(() => {
-  return new Date().toLocaleDateString('ru-RU', {
+  const now = new Date()
+  if (now.getHours() < dayStartHour.value) {
+    now.setDate(now.getDate() - 1)
+  }
+  return now.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -26,10 +36,26 @@ const currentDate = computed(() => {
   background-color: #fff;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .header-date {
   font-size: 16px;
   font-weight: 600;
   color: #222;
+}
+
+.header-settings-btn {
+  text-decoration: none;
+  font-size: 20px;
+  color: var(--text-gray);
+}
+
+.header-settings-btn:hover {
+  color: var(--text-black);
 }
 
 .header-add-btn {

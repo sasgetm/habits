@@ -3,12 +3,16 @@
     <HeaderBar />
     <main class="app-main">
       <HabitList
-        :habits="habits"
+        :habits="sortedHabits"
         :completed="completed"
         @select-level="handleSelectLevel"
       />
     </main>
-    <FooterBar :total-points="totalPoints" @reset="handleReset" />
+    <FooterBar
+      :total-points="totalPoints"
+      :target-points="targetPoints"
+      @reset="handleReset"
+    />
   </div>
 </template>
 
@@ -18,8 +22,14 @@ import HeaderBar from '../components/HeaderBar.vue'
 import FooterBar from '../components/FooterBar.vue'
 import HabitList from '../components/HabitList.vue'
 import { useHabits } from '../composables/useHabits.js'
+import { useSettings } from '../composables/useSettings.js'
 
 const { habits, completed, resetCompleted, setLevel } = useHabits()
+const { targetPoints } = useSettings()
+
+const sortedHabits = computed(() =>
+  [...habits.value].sort((a, b) => a.order - b.order),
+)
 
 const totalPoints = computed(() => {
   let sum = 0
