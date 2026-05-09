@@ -1,6 +1,6 @@
 <template>
   <div class="app-layout">
-    <HeaderBar />
+    <GobackHeader />
     <main class="app-main">
       <div class="habit-form">
         <h2 class="form-title">Общие настройки</h2>
@@ -57,7 +57,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import HeaderBar from '../components/HeaderBar.vue'
+import GobackHeader from '../components/GobackHeader.vue'
 import FormField from '../components/FormField.vue'
 import FormButton from '../components/FormButton.vue'
 import { useSettings } from '../composables/useSettings.js'

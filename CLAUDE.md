@@ -37,6 +37,7 @@ habits/
     │   └── settings.vue        # Страница настроек: час начала дня, целевое кол-во баллов
     └── components/
         ├── HeaderBar.vue       # Шапка: дата (currentDate с учётом dayStartHour) + кнопка ✎ настройки + router-link «Добавить привычку»
+        ├── GobackHeader.vue    # Шапка для страниц форм: стрелка назад ←, без даты и кнопки добавления
         ├── HabitList.vue       # Список привычек: v-for HabitItem, проброс props/events
         ├── HabitItem.vue       # Карточка привычки: radio-кнопки уровней, router-link «Редактировать» → /habit/:id/edit
         ├── FooterBar.vue       # Подвал: totalPoints/targetPoints + кнопка ✎ настройки + кнопка «Сброс»
@@ -82,7 +83,7 @@ App.vue
     │       — Кнопка «Сброс» сбрасывает все отметки через emit reset → main.handleReset
     │
     └── habit-form.vue (пути: /habit/new, /habit/:id/edit)
-        ├── HeaderBar.vue (та же шапка с датой и кнопкой «Добавить привычку»)
+        ├── GobackHeader.vue (стрелка назад ←, без даты и кнопки добавления)
         └── HabitForm.vue
             Props: habitId (String|null)
             Emits: saved({ id, name, levels, order }), deleted(id)
@@ -101,7 +102,7 @@ App.vue
             └── FormButton.vue («Удалить», variant=danger, v-if=isEdit)
     
     └── settings.vue (путь: /settings)
-        ├── HeaderBar.vue (та же шапка с датой и кнопкой «Добавить привычку»)
+        ├── GobackHeader.vue (стрелка назад ←, без даты и кнопки добавления)
         └── Форма «Общие настройки»
             — Заголовок: «Общие настройки»
             — Поле «Час начала нового дня» (FormField: number, 0-23)
@@ -133,6 +134,7 @@ App.vue
 - `saveToLocalStorage()` — сериализует habits, completed, nextOrder в localStorage
 - `loadFromLocalStorage()` — восстанавливает состояние из localStorage
 - `migrateHabits(list)` — миграция старых данных: числовой id → строка, отсутствующий order → id
+- `recalculateNextOrder()` — вычисляет nextOrder как max(order) + 1 из всех привычек, вызывается при загрузке и после любого изменения привычек
 
 **Автоинициализация при загрузке модуля:**
 - Если в localStorage есть данные — загружает их с миграцией
@@ -253,4 +255,6 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - ✅ HeaderBar: дата с учётом часа начала дня, кнопка ✎ для перехода в настройки
 - ✅ Сортировка привычек по order (computed sortedHabits в main.vue)
 - ✅ Миграция старых данных: числовой id → UUID-строка, отсутствующий order → id
+- ✅ Логика nextOrder: вычисляется как max(order) + 1 из всех привычек, пересчитывается при любом изменении (добавление, редактирование, удаление)
+- ✅ GobackHeader: новый header для страниц форм (стрелка назад ←)
 - Не реализовано: синхронизация с Google Sheets.

@@ -1,6 +1,6 @@
 <template>
   <div class="app-layout">
-    <HeaderBar />
+    <GobackHeader />
     <main class="app-main">
       <HabitForm
         :habit-id="habitId"
@@ -14,7 +14,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import HeaderBar from '../components/HeaderBar.vue'
+import GobackHeader from '../components/GobackHeader.vue'
 import HabitForm from '../components/HabitForm.vue'
 import { useHabits } from '../composables/useHabits.js'
 

@@ -16,17 +16,27 @@ function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY_NEXT_ORDER, String(nextOrder))
 }
 
-function migrateHabits(list) {
-  for (const h of list) {
-    // Если id — число (старый формат), преобразуем в строку
-    if (typeof h.id === 'number') {
-      h.id = String(h.id)
-    }
-    // Если нет поля order, присваиваем order = старый числовой id (или индекс)
-    if (h.order == null) {
-      h.order = typeof h.id === 'number' ? h.id : 1
-    }
+// function migrateHabits(list) {
+//   for (const h of list) {
+//     // Если id — число (старый формат), преобразуем в строку
+//     if (typeof h.id === 'number') {
+//       h.id = String(h.id)
+//     }
+//     // Если нет поля order, присваиваем order = старый числовой id (или индекс)
+//     if (h.order == null) {
+//       h.order = typeof h.id === 'number' ? h.id : 1
+//     }
+//   }
+// }
+
+// Вычисляет nextOrder как max(order) + 1 из всех привычек
+function recalculateNextOrder() {
+  if (habits.value.length === 0) {
+    nextOrder = 1
+    return
   }
+  const maxOrder = Math.max(...habits.value.map((h) => h.order))
+  nextOrder = maxOrder + 1
 }
 
 function loadFromLocalStorage() {
@@ -37,7 +47,7 @@ function loadFromLocalStorage() {
   if (savedHabits) {
     try {
       const parsed = JSON.parse(savedHabits)
-      migrateHabits(parsed)
+      // migrateHabits(parsed)
       habits.value = parsed
     } catch {
       habits.value = []
@@ -53,16 +63,8 @@ function loadFromLocalStorage() {
       // ignore
     }
   }
-  if (savedNextOrder) {
-    nextOrder = Number(savedNextOrder)
-  }
-
-  // Если есть старый ключ nextId, мигрируем его в nextOrder
-  const savedNextId = localStorage.getItem('habits-tracker-nextId')
-  if (savedNextId && !savedNextOrder) {
-    nextOrder = Number(savedNextId)
-    localStorage.removeItem('habits-tracker-nextId')
-  }
+  // Вычисляем nextOrder на основе существующих привычек
+  recalculateNextOrder()
 }
 
 
@@ -75,15 +77,13 @@ export function useHabits() {
   function addHabit(name, levels, order) {
     const id = crypto.randomUUID()
     const habitOrder = order != null ? order : nextOrder
-    if (habitOrder >= nextOrder) {
-      nextOrder = habitOrder + 1
-    }
     habits.value.push({
       id,
       name,
       levels: [...levels],
       order: habitOrder,
     })
+    recalculateNextOrder()
     saveToLocalStorage()
     return id
   }
@@ -97,6 +97,7 @@ export function useHabits() {
         habit.order = order
       }
     }
+    recalculateNextOrder()
     saveToLocalStorage()
   }
 
@@ -106,6 +107,7 @@ export function useHabits() {
       habits.value.splice(index, 1)
     }
     delete completed[id]
+    recalculateNextOrder()
     saveToLocalStorage()
   }
 
