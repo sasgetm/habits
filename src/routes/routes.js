@@ -19,6 +19,11 @@ const routes = [
     component: HabitFormPage,
     props: true,
   },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('../pages/settings.vue'),
+  },
 ]
 
 const router = createRouter({

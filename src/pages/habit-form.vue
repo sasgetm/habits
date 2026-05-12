@@ -1,6 +1,6 @@
 <template>
   <div class="app-layout">
-    <HeaderBar />
+    <GobackHeader />
     <main class="app-main">
       <HabitForm
         :habit-id="habitId"
@@ -14,7 +14,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import HeaderBar from '../components/HeaderBar.vue'
+import GobackHeader from '../components/GobackHeader.vue'
 import HabitForm from '../components/HabitForm.vue'
 import { useHabits } from '../composables/useHabits.js'
 
@@ -24,14 +24,15 @@ const router = useRouter()
 const { addHabit, updateHabit, deleteHabit } = useHabits()
 
 const habitId = computed(() => {
-  return route.params.id ? Number(route.params.id) : null
+  const id = route.params.id
+  return id != null ? String(id) : null
 })
 
-function handleSaved({ id, name, levels }) {
+function handleSaved({ id, name, levels, order }) {
   if (id != null) {
-    updateHabit(id, name, levels)
+    updateHabit(id, name, levels, order)
   } else {
-    addHabit(name, levels)
+    addHabit(name, levels, order)
   }
   router.push('/')
 }

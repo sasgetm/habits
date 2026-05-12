@@ -3,35 +3,33 @@
     <HeaderBar />
     <main class="app-main">
       <HabitList
-        :habits="habits"
+        :habits="sortedHabits"
         :completed="completed"
         @select-level="handleSelectLevel"
       />
     </main>
-    <FooterBar :total-points="totalPoints" @reset="handleReset" />
+    <FooterBar
+      :total-points="totalPoints"
+      :target-points="targetPoints"
+      @reset="handleReset"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import HeaderBar from '../components/HeaderBar.vue'
 import FooterBar from '../components/FooterBar.vue'
 import HabitList from '../components/HabitList.vue'
 import { useHabits } from '../composables/useHabits.js'
+import { useSettings } from '../composables/useSettings.js'
 
-const { habits, completed, resetCompleted, seedInitialHabits } = useHabits()
+const { habits, completed, resetCompleted, setLevel } = useHabits()
+const { targetPoints } = useSettings()
 
-// Начальные привычки (заполняются один раз при первом запуске)
-onMounted(() => {
-  seedInitialHabits([
-    { id: 1, name: 'Прогулка пешком/бег/велосипед', levels: [2, 3] },
-    { id: 2, name: 'Спорт', levels: [3] },
-    { id: 3, name: 'Урок по английскому', levels: [1, 2, 3] },
-    { id: 3, name: 'Урок по немецкому', levels: [1, 2, 3] },
-    { id: 3, name: 'Уборка', levels: [1] },
-    { id: 3, name: 'Учеба', levels: [3] },
-  ])
-})
+const sortedHabits = computed(() =>
+  [...habits.value].sort((a, b) => a.order - b.order),
+)
 
 const totalPoints = computed(() => {
   let sum = 0
@@ -45,7 +43,7 @@ const totalPoints = computed(() => {
 })
 
 function handleSelectLevel(habitId, levelId) {
-  completed[habitId] = levelId
+  setLevel(habitId, levelId)
 }
 
 function handleReset() {
