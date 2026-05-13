@@ -64,7 +64,7 @@ function handleSave() {
 }
 
 function handleCreateNew() {
-  // Not implemented yet
+  router.push('/tracker-create')
 }
 </script>
 

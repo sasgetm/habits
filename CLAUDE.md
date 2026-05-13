@@ -55,6 +55,7 @@ habits/
 | `/habit/:id/edit` | habit-edit | habit-form.vue | Редактирование привычки (props: id) |
 | `/settings` | settings | settings.vue | Общие настройки (ленивая загрузка) |
 | `/init` | init | init.vue | Страница инициализации — ввод Google Apps Script Deployment ID |
+| `/tracker-create` | tracker-create | tracker-create.vue | Создание трекера привычек — инструкция, код GAS, имя трекера, Deployment ID |
 
 ## Дерево компонентов и поток данных
 
@@ -201,7 +202,7 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - **Миграция данных** — старые привычки с числовым id и без order автоматически мигрируются при загрузке
 - Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset → resetCompleted()
 - CRUD привычек — **реализован**: добавление, редактирование, удаление через useHabits
-- **Navigation guard** — при каждом переходе проверяется наличие `habits-settings-deploymentId` в localStorage. Если отсутствует — редирект на `/init`. Страница `/init` доступна без проверки.
+- **Navigation guard** — при каждом переходе проверяется наличие `habits-settings-deploymentId` в localStorage. Если отсутствует — редирект на `/init`. Страницы `/init` и `/tracker-create` доступны без проверки.
 
 ### Компоненты формы
 
