@@ -1,14 +1,22 @@
 import { ref, reactive } from 'vue'
+import { useApi, csvToArray } from './useApi.js'
 
 const STORAGE_KEY_HABITS = 'habits-tracker-data'
 const STORAGE_KEY_COMPLETED = 'habits-tracker-completed'
 const STORAGE_KEY_NEXT_ORDER = 'habits-tracker-nextOrder'
 
-// Общее реактивное состояние привычек (модульный singleton)
 const habits = ref([])
 const completed = reactive({})
 
 let nextOrder = 1
+let api = null
+
+function getApi() {
+  if (!api) {
+    api = useApi()
+  }
+  return api
+}
 
 function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(habits.value))
@@ -74,21 +82,27 @@ if (localStorage.getItem(STORAGE_KEY_HABITS)) {
 }
 
 export function useHabits() {
-  function addHabit(name, levels, order) {
+  function addHabit(name, levels, order, syncToApi = true) {
     const id = crypto.randomUUID()
     const habitOrder = order != null ? order : nextOrder
-    habits.value.push({
+    const habit = {
       id,
       name,
       levels: [...levels],
       order: habitOrder,
-    })
+    }
+    habits.value.push(habit)
     recalculateNextOrder()
     saveToLocalStorage()
+
+    if (syncToApi) {
+      getApi().upsertHabit(habit)
+    }
+
     return id
   }
 
-  function updateHabit(id, name, levels, order) {
+  function updateHabit(id, name, levels, order, syncToApi = true) {
     const habit = habits.value.find((h) => h.id === id)
     if (habit) {
       habit.name = name
@@ -99,9 +113,13 @@ export function useHabits() {
     }
     recalculateNextOrder()
     saveToLocalStorage()
+
+    if (syncToApi) {
+      getApi().upsertHabit(habit)
+    }
   }
 
-  function deleteHabit(id) {
+  function deleteHabit(id, syncToApi = true) {
     const index = habits.value.findIndex((h) => h.id === id)
     if (index !== -1) {
       habits.value.splice(index, 1)
@@ -109,6 +127,10 @@ export function useHabits() {
     delete completed[id]
     recalculateNextOrder()
     saveToLocalStorage()
+
+    if (syncToApi) {
+      getApi().deleteHabitApi(id)
+    }
   }
 
   function getHabitById(id) {
@@ -139,6 +161,24 @@ export function useHabits() {
     saveToLocalStorage()
   }
 
+  function loadFromBootstrap(habitsData) {
+    if (!Array.isArray(habitsData)) return
+
+    habits.value = habitsData.map((h) => ({
+      id: h.id,
+      name: h.name,
+      levels: csvToArray(h.levels),
+      order: h.order != null ? h.order : 0,
+    }))
+
+    for (const key of Object.keys(completed)) {
+      delete completed[key]
+    }
+
+    recalculateNextOrder()
+    saveToLocalStorage()
+  }
+
   return {
     habits,
     completed,
@@ -150,5 +190,6 @@ export function useHabits() {
     updateOrder,
     resetCompleted,
     setLevel,
+    loadFromBootstrap,
   }
 }

@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Минималистичный трекер привычек (SPA) на Vue 3 + Vite. Позволяет отслеживать выполнение ежедневных привычек с несколькими уровнями выполнения. Данные хранятся в localStorage (автосохранение после каждого изменения). Синхронизация с Google Sheets — в планах.
+Минималистичный трекер привычек (SPA) на Vue 3 + Vite. Позволяет отслеживать выполнение ежедневных привычек с несколькими уровнями выполнения. Данные хранятся в localStorage (автосохранение после каждого изменения). Синхронизация с Google Sheets реализована.
 
 ## Технологический стек
 
@@ -27,8 +27,9 @@ habits/
     ├── assets/
     │   └── main.css            # Глобальный reset (*), стили body, button
     ├── composables/
-    │   ├── useHabits.js        # Общее реактивное состояние: habits (ref), completed (reactive), CRUD-методы
-    │   └── useSettings.js      # Общее реактивное состояние настроек: dayStartHour, targetPoints, saveSettings
+    │   ├── useHabits.js        # Общее реактивное состояние: habits (ref), completed (reactive), CRUD-методы, sync с API
+    │   ├── useSettings.js     # Общее реактивное состояние настроек: dayStartHour, targetPoints, trackerName, loadFromBootstrap
+    │   └── useApi.js          # Google Apps Script API: bootstrap, upsertHabit, deleteHabit, updateSettings
     ├── routes/
     │   └── routes.js           # Конфигурация маршрутов: createRouter(createWebHistory())
     ├── pages/
@@ -147,7 +148,9 @@ App.vue
 Модульный singleton — общее реактивное состояние настроек приложения:
 - `dayStartHour` — ref(0), час начала нового дня (целое, 0–23)
 - `targetPoints` — ref([30]), массив целевых количеств баллов (каждый элемент: целое, 1–256)
+- `trackerName` — ref(''), имя трекера из Google Sheets
 - `saveSettings(hour, pointsArray)` — валидирует и сохраняет оба значения в localStorage, возвращает true/false
+- `loadFromBootstrap(settings)` — загружает настройки из API (trackerName, rewardLevels → targetPoints)
 
 **Ключи localStorage:**
 - `habits-settings-dayStartHour` — час начала нового дня
@@ -203,6 +206,7 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - Кнопка «Сброс» в FooterBar — **реализована**: emit reset → main.vue handleReset → resetCompleted()
 - CRUD привычек — **реализован**: добавление, редактирование, удаление через useHabits
 - **Navigation guard** — при каждом переходе проверяется наличие `habits-settings-deploymentId` в localStorage. Если отсутствует — редирект на `/init`. Страницы `/init` и `/tracker-create` доступны без проверки.
+- **Google Apps Script API** — синхронизация с Google Sheets через deployment ID. useApi.js содержит методы: bootstrap (загрузка данных при инициализации), upsertHabit, deleteHabit, updateSettings. Данные из API (CSV-строки levels) конвертируются в массивы через csvToArray, при отправке — arrayToCsv. При инициализации приложения данные из Google Sheets заменяют localStorage.
 
 ### Компоненты формы
 
@@ -260,4 +264,4 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - ✅ Миграция старых данных: числовой id → UUID-строка, отсутствующий order → id
 - ✅ Логика nextOrder: вычисляется как max(order) + 1 из всех привычек, пересчитывается при любом изменении (добавление, редактирование, удаление)
 - ✅ GobackHeader: новый header для страниц форм (стрелка назад ←)
-- Не реализовано: синхронизация с Google Sheets.
+- ✅ Синхронизация с Google Sheets.

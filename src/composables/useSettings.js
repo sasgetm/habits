@@ -1,11 +1,13 @@
 import { ref } from 'vue'
+import { useApi, csvToArray } from './useApi.js'
 
 const STORAGE_KEY_DAY_START = 'habits-settings-dayStartHour'
 const STORAGE_KEY_TARGET = 'habits-settings-targetPoints'
 
-// Общее реактивное состояние настроек (модульный singleton)
 const dayStartHour = ref(0)
 const targetPoints = ref([30])
+const trackerName = ref('')
+const api = useApi()
 
 function loadFromLocalStorage() {
   const savedDayStart = localStorage.getItem(STORAGE_KEY_DAY_START)
@@ -29,12 +31,16 @@ function loadFromLocalStorage() {
         }
       }
     } catch {
-      // Старый формат — одиночное число
       const val = Number(savedTarget)
       if (Number.isInteger(val) && val >= 1 && val <= 256) {
         targetPoints.value = [val]
       }
     }
+  }
+
+  const savedTrackerName = localStorage.getItem('habits-settings-trackerName')
+  if (savedTrackerName) {
+    trackerName.value = savedTrackerName
   }
 }
 
@@ -69,9 +75,30 @@ export function useSettings() {
     return true
   }
 
+  function loadFromBootstrap(settings) {
+    if (!settings) return
+
+    const localDeploymentId = localStorage.getItem('habits-settings-deploymentId')
+
+    if (settings.trackerName && settings.trackerName !== localDeploymentId) {
+      trackerName.value = settings.trackerName
+      localStorage.setItem('habits-settings-trackerName', settings.trackerName)
+    }
+
+    if (settings.rewardLevels) {
+      const levels = csvToArray(settings.rewardLevels)
+      if (levels.length > 0) {
+        targetPoints.value = levels
+        localStorage.setItem(STORAGE_KEY_TARGET, JSON.stringify(levels))
+      }
+    }
+  }
+
   return {
     dayStartHour,
     targetPoints,
+    trackerName,
     saveSettings,
+    loadFromBootstrap,
   }
 }
