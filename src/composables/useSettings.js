@@ -48,7 +48,7 @@ function loadFromLocalStorage() {
 loadFromLocalStorage()
 
 export function useSettings() {
-  function saveSettings(hour, pointsArray) {
+  function saveSettings(hour, pointsArray, syncToApi = true) {
     const hourVal = Number(hour)
 
     if (!Number.isInteger(hourVal) || hourVal < 0 || hourVal > 23) {
@@ -71,6 +71,15 @@ export function useSettings() {
 
     localStorage.setItem(STORAGE_KEY_DAY_START, String(hourVal))
     localStorage.setItem(STORAGE_KEY_TARGET, JSON.stringify(validPoints))
+
+    if (syncToApi) {
+      const deploymentId = localStorage.getItem('habits-settings-deploymentId')
+      api.updateSettings({
+        trackerName: trackerName.value,
+        deploymentId: deploymentId,
+        rewardLevels: validPoints,
+      })
+    }
 
     return true
   }

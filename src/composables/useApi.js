@@ -23,7 +23,9 @@ function arrayToCsv(arr) {
 }
 
 function csvToArray(str) {
-  if (!str || typeof str !== 'string') return []
+  if (!str) return []
+  if (Array.isArray(str)) return str
+  if (typeof str !== 'string') return []
   return str.split(',').map((v) => Number(v.trim())).filter((v) => !isNaN(v))
 }
 
