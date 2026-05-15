@@ -237,6 +237,7 @@ function handleUpdateSettings(data) {
     'trackerName',
     'deploymentId',
     'rewardLevels',
+    'dayStartHour',
   ];
 
   allowedSettings.forEach((key) => {
@@ -282,13 +283,25 @@ function upsertSetting(sheet, key, value) {
       const rowKey = values[i][0];
 
       if (rowKey === key) {
-        sheet.getRange(i + 2, 2).setValue(value);
+        sheet
+          .getRange(i + 2, 2)
+          .setNumberFormat('@')
+          .setValue(String(value));
         return;
       }
     }
   }
 
-  sheet.appendRow([key, value]);
+  const row = sheet.getLastRow() + 1;
+
+  const range = sheet.getRange(row, 1, 1, 2);
+
+  range.setNumberFormats([['@', '@']]);
+
+  range.setValues([[
+    String(key),
+    String(value),
+  ]]);
 }
 
 /**
@@ -313,14 +326,16 @@ function handleUpsertHabit(habit) {
       const rowHabitId = values[i][0];
 
       if (rowHabitId === habit.id) {
-        sheet
-          .getRange(i + 2, 1, 1, 4)
-          .setValues([[
-            habit.id,
-            habit.name,
-            habit.levels,
-            habit.order,
-          ]]);
+        const range = sheet.getRange(i + 2, 1, 1, 4);
+
+        range.setNumberFormats([['@', '@', '@', '0']]);
+
+        range.setValues([[
+          String(habit.id),
+          String(habit.name),
+          String(habit.levels),
+          Number(habit.order),
+        ]]);
 
         return {
           success: true,
@@ -330,12 +345,18 @@ function handleUpsertHabit(habit) {
     }
   }
 
-  sheet.appendRow([
-    habit.id,
-    habit.name,
-    habit.levels,
-    habit.order,
-  ]);
+  const row = sheet.getLastRow() + 1;
+
+  const range = sheet.getRange(row, 1, 1, 4);
+
+  range.setNumberFormats([['@', '@', '@', '0']]);
+
+  range.setValues([[
+    String(habit.id),
+    String(habit.name),
+    String(habit.levels),
+    Number(habit.order),
+  ]]);
 
   return {
     success: true,
@@ -427,17 +448,25 @@ function validateHabit(habit) {
  */
 
 function getOrCreateSettingsSheet() {
-  return getOrCreateSheet(
+  const sheet = getOrCreateSheet(
     SETTINGS_SHEET_NAME,
     SETTINGS_HEADERS
   );
+
+  ensureSettingsSheetFormatting(sheet);
+
+  return sheet;
 }
 
 function getOrCreateHabitsSheet() {
-  return getOrCreateSheet(
+  const sheet = getOrCreateSheet(
     HABITS_SHEET_NAME,
     HABITS_HEADERS
   );
+
+  ensureHabitsSheetFormatting(sheet);
+
+  return sheet;
 }
 
 function getOrCreateSheet(sheetName, headers) {
@@ -466,6 +495,22 @@ function ensureHeaders(sheet, headers) {
       .getRange(1, 1, 1, headers.length)
       .setValues([headers]);
   }
+}
+
+function ensureHabitsSheetFormatting(sheet) {
+  // id
+  sheet.getRange('A:A').setNumberFormat('@');
+  // name
+  sheet.getRange('B:B').setNumberFormat('@');
+  // levels
+  sheet.getRange('C:C').setNumberFormat('@');
+  // order
+  sheet.getRange('D:D').setNumberFormat('0');
+}
+
+function ensureSettingsSheetFormatting(sheet) {
+  sheet.getRange('A:A').setNumberFormat('@');
+  sheet.getRange('B:B').setNumberFormat('@');
 }
 
 /**

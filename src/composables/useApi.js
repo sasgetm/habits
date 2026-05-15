@@ -145,6 +145,7 @@ export function useApi() {
         trackerName: settings.trackerName,
         deploymentId: settings.deploymentId,
         rewardLevels: arrayToCsv(settings.rewardLevels),
+        dayStartHour: settings.dayStartHour,
       }
 
       const response = await fetch(`${endpoint}?action=updateSettings`, {

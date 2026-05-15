@@ -7,6 +7,24 @@
 
         <form @submit.prevent="handleSave">
           <FormField
+            v-model="trackerNameInput"
+            label="Имя трекера"
+            type="text"
+            required
+            placeholder="Мой трекер привычек"
+            :error="errors.trackerName"
+          />
+
+          <FormField
+            v-model="deploymentIdInput"
+            label="Google Apps Script Deployment ID"
+            type="text"
+            required
+            placeholder="AIza..."
+            :error="errors.deploymentId"
+          />
+
+          <FormField
             v-model="dayStartHourInput"
             label="Час начала нового дня"
             type="number"
@@ -64,14 +82,24 @@ import { useSettings } from '../composables/useSettings.js'
 
 const router = useRouter()
 
-const { dayStartHour, targetPoints, saveSettings } = useSettings()
+const {
+  dayStartHour,
+  targetPoints,
+  trackerName,
+  deploymentId,
+  saveSettings,
+} = useSettings()
 
 const dayStartHourInput = ref(dayStartHour.value)
 const targetPointsInputs = ref([...targetPoints.value])
+const trackerNameInput = ref(trackerName.value)
+const deploymentIdInput = ref(deploymentId.value)
 
 const errors = reactive({
   dayStartHour: null,
   targetPoints: {},
+  trackerName: null,
+  deploymentId: null,
 })
 
 function addTargetPoint() {
@@ -82,6 +110,20 @@ function validate() {
   let valid = true
   errors.dayStartHour = null
   errors.targetPoints = {}
+  errors.trackerName = null
+  errors.deploymentId = null
+
+  const trimmedTrackerName = trackerNameInput.value.trim()
+  if (!trimmedTrackerName) {
+    errors.trackerName = 'Введите имя трекера'
+    valid = false
+  }
+
+  const trimmedDeploymentId = deploymentIdInput.value.trim()
+  if (!trimmedDeploymentId) {
+    errors.deploymentId = 'Введите Deployment ID'
+    valid = false
+  }
 
   const hourVal = Number(dayStartHourInput.value)
   if (!Number.isInteger(hourVal) || hourVal < 0 || hourVal > 23) {
@@ -109,7 +151,7 @@ function handleSave() {
   if (!validate()) return
 
   const numericPoints = targetPointsInputs.value.map((v) => Number(v))
-  saveSettings(dayStartHourInput.value, numericPoints)
+  saveSettings(dayStartHourInput.value, numericPoints, trackerNameInput.value, deploymentIdInput.value, true)
   router.push('/')
 }
 </script>
