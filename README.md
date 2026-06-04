@@ -8,6 +8,8 @@
 
 Демо: https://sasgetm.github.io/habits
 
+![Скриншот](./assets/screenshot.png)
+
 ## Текущий функционал
 
 - Отображение списка привычек
