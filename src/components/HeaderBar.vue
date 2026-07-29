@@ -33,7 +33,17 @@ const currentDate = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background-color: #fff;
+  /* background-color: #fff; */
+
+  opacity: 1;
+	backdrop-filter: blur(20px);
+	background: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.25) 27%, rgba(255, 255, 255, 0.45) 49%, rgba(255, 255, 255, 0.7) 80%, rgba(255, 255, 255, 0.9) 100%);
+	mask-image: linear-gradient(black 75%, transparent 100%);
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
 }
 
 .header-left {

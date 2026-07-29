@@ -39,7 +39,16 @@ const formattedPoints = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  background-color: #fff;
+  
+  opacity: 1;
+	backdrop-filter: blur(20px);
+	background: linear-gradient(0deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 27%, rgba(255, 255, 255, 0.55) 49%, rgba(255, 255, 255, 0.25) 80%, rgba(255, 255, 255, 0) 100%);
+	linear-gradient(transparent 0%, black 15%)
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
 
 .footer-left {

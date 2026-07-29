@@ -56,6 +56,7 @@ function handleReset() {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding: 80px 0 64px 0;
 }
 
 .app-main {
