@@ -4,7 +4,7 @@ const isLoading = ref(false)
 const error = ref(null)
 
 function isDemoMode() {
-  return localStorage.getItem('habits-settings-demo-mode') === 'true'
+  return localStorage.getItem('habits-settings-demo-mode') !== 'false'
 }
 
 function getEndpoint() {

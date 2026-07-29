@@ -223,7 +223,7 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - `habits-settings-targetPoints` — JSON-массив целевых количеств баллов
 - `habits-settings-trackerName` — имя трекера
 - `habits-settings-deploymentId` — ID деплоя Google Apps Script
-- `habits-settings-demo-mode` — флаг демо-режима (`'true'` = демо, отсутствует/иное = обычный режим). write-операции в API не выполняются
+- `habits-settings-demo-mode` — флаг демо-режима. Отсутствует или `'true'` = демо-режим включён (write-операции в API не выполняются). `'false'` = обычный режим, write-операции отправляются в API
 
 **Автоинициализация при загрузке модуля:**
 - Загружает значения из localStorage, если они есть и проходят валидацию
