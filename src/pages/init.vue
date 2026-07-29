@@ -32,6 +32,11 @@
               variant="secondary"
               @click="handleCreateNew"
             />
+            <FormButton
+              label="Демо"
+              variant="secondary"
+              @click="handleDemo"
+            />
           </div>
         </form>
       </div>
@@ -65,6 +70,12 @@ function handleSave() {
 
 function handleCreateNew() {
   router.push('/tracker-create')
+}
+
+function handleDemo() {
+  localStorage.setItem('habits-settings-deploymentId', 'AKfycbzIjeLKZ8SbjMSRcm4rw2dXshZ7ngV7gWAW80WCs39TihJEqcIibdGVyPrPNVSxW5ug')
+  localStorage.setItem('habits-settings-demo-mode', 'true')
+  router.push('/')
 }
 </script>
 

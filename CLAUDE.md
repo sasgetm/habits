@@ -29,7 +29,7 @@ habits/
     ├── composables/
     │   ├── useHabits.js        # Общее реактивное состояние: habits (ref), completed (reactive), CRUD-методы, sync с API
     │   ├── useSettings.js     # Общее реактивное состояние настроек: dayStartHour, targetPoints, trackerName, deploymentId, loadFromBootstrap
-    │   └── useApi.js          # Google Apps Script API: bootstrap, upsertHabit, deleteHabit, updateSettings
+    │   └── useApi.js          # Google Apps Script API: bootstrap, upsertHabit, deleteHabit, updateSettings. В демо-режиме (habits-settings-demo-mode) write-операции возвращают { success: true } без вызова API
     ├── routes/
     │   └── routes.js           # Конфигурация маршрутов: createRouter(createWebHistory())
     ├── pages/
@@ -57,7 +57,7 @@ habits/
 | `/habit/new` | habit-new | habit-form.vue | Добавление новой привычки |
 | `/habit/:id/edit` | habit-edit | habit-form.vue | Редактирование привычки (props: id) |
 | `/settings` | settings | settings.vue | Общие настройки (ленивая загрузка) |
-| `/init` | init | init.vue | Страница инициализации — ввод Google Apps Script Deployment ID |
+| `/init` | init | init.vue | Страница инициализации — ввод Google Apps Script Deployment ID. Есть кнопка «Демо»: устанавливает демо Deployment ID и флаг demo-mode |
 | `/tracker-create` | tracker-create | tracker-create.vue | Создание трекера привычек — инструкция, код GAS, имя трекера, Deployment ID |
 
 ## Дерево компонентов и поток данных
@@ -223,6 +223,7 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 - `habits-settings-targetPoints` — JSON-массив целевых количеств баллов
 - `habits-settings-trackerName` — имя трекера
 - `habits-settings-deploymentId` — ID деплоя Google Apps Script
+- `habits-settings-demo-mode` — флаг демо-режима (`'true'` = демо, отсутствует/иное = обычный режим). write-операции в API не выполняются
 
 **Автоинициализация при загрузке модуля:**
 - Загружает значения из localStorage, если они есть и проходят валидацию
@@ -232,14 +233,20 @@ computed: [...habits.value].sort((a, b) => a.order - b.order)
 ### useApi composable (src/composables/useApi.js)
 
 Сервис для работы с Google Apps Script API:
-- `bootstrap()` — запрос на получение данных из Google Sheets (settings и habits)
-- `upsertHabit(habit)` — создание или обновление привычки в Google Sheets
-- `deleteHabitApi(id)` — удаление привычки из Google Sheets
-- `updateSettings(settings)` — обновление настроек в Google Sheets (trackerName, deploymentId, rewardLevels, dayStartHour)
+- `bootstrap()` — запрос на получение данных из Google Sheets (settings и habits). Работает в любом режиме
+- `upsertHabit(habit)` — создание или обновление привычки в Google Sheets. В демо-режиме возвращает `{ success: true }` без вызова API
+- `deleteHabitApi(id)` — удаление привычки из Google Sheets. В демо-режиме возвращает `{ success: true }` без вызова API
+- `updateSettings(settings)` — обновление настроек в Google Sheets (trackerName, deploymentId, rewardLevels, dayStartHour). В демо-режиме возвращает `{ success: true }` без вызова API
 - `arrayToCsv(arr)` — конвертация массива в CSV-строку для API
 - `csvToArray(str)` — конвертация CSV-строки из API в массив
 
 **Endpoint:** `https://script.google.com/macros/s/{deploymentId}/exec`
+
+**Демо-режим:**
+- write-операции (upsertHabit, deleteHabitApi, updateSettings) проверяют флаг `habits-settings-demo-mode` в localStorage
+- В демо-режиме все write-операции возвращают `{ success: true }` без выполнения fetch
+- bootstrap (read-операция) выполняется всегда, независимо от режима
+- Это позволяет загрузить демо-данные с сервера при старте, но все изменения остаются только в localStorage
 
 **Начальная загрузка (main.js):**
 - При инициализации приложения вызывается `initializeApp()`, которая:

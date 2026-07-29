@@ -3,6 +3,10 @@ import { ref } from 'vue'
 const isLoading = ref(false)
 const error = ref(null)
 
+function isDemoMode() {
+  return localStorage.getItem('habits-settings-demo-mode') === 'true'
+}
+
 function getEndpoint() {
   const deploymentId = localStorage.getItem('habits-settings-deploymentId')
   if (!deploymentId) {
@@ -62,6 +66,10 @@ export function useApi() {
   }
 
   async function upsertHabit(habit) {
+    if (isDemoMode()) {
+      return { success: true }
+    }
+
     const endpoint = getEndpoint()
     if (!endpoint) {
       error.value = 'No deployment ID configured'
@@ -100,6 +108,10 @@ export function useApi() {
   }
 
   async function deleteHabitApi(habitId) {
+    if (isDemoMode()) {
+      return { success: true }
+    }
+
     const endpoint = getEndpoint()
     if (!endpoint) {
       error.value = 'No deployment ID configured'
@@ -131,6 +143,10 @@ export function useApi() {
   }
 
   async function updateSettings(settings) {
+    if (isDemoMode()) {
+      return { success: true }
+    }
+
     const endpoint = getEndpoint()
     if (!endpoint) {
       error.value = 'No deployment ID configured'
